@@ -1,8 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import mplfinance as mpf # mplfinance for candle plotting
 
 def generate_stock_data(days=100, initial_price=340000, drift=0.0001, volatility=0.02):
-    # Generate synthetic stock data using Geometric Brownian Motion
     dt = 1  # Each step represents one day
     prices = [initial_price]
     for _ in range(days - 1):
@@ -16,12 +16,18 @@ def generate_stock_data(days=100, initial_price=340000, drift=0.0001, volatility
 np.random.seed(42)
 prices = generate_stock_data(days=12, initial_price=33920, drift=-0.005, volatility=0.005)
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(prices, marker='o', linestyle='-', color='b')
-plt.title('Simulated Stock Prices using Geometric Brownian Motion')
-plt.xlabel('Days')
-plt.ylabel('Price')
-plt.grid(True)
-plt.savefig('stock_chart.png')
-plt.show()
+#OHLC Data
+ohlc_data = []
+for i in range(len(prices) - 1):
+    open_price = prices[i] # open(current) = close(previous)
+    close_price = prices[i + 1] # close = current
+    high_price = max(open_price, close_price) * (1 + np.random.uniform(0, 0.01))
+    low_price = min(open_price, close_price) * (1 - np.random.uniform(0, 0.01))
+    ohlc_data.append([open_price, high_price, low_price, close_price]) #append the ohlc data for today
+
+#Creating a DataFrame
+dates = pd.date_range(start='2023-01-01', periods=len(ohlc_data), freq='D')
+ohlc_df = pd.DataFrame(ohlc_data, columns=['Open', 'High', 'Low', 'Close'], index=dates)
+
+# Candlestick Chart Plott:
+mpf.plot(ohlc_df, type='candle', style='yahoo', title='Simulated Stock Prices using Geometric Brownian Motion', ylabel='Price')
